@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Undangan Pernikahan - Adji & Aulia</title>
     
     <!-- Tailwind CSS untuk Styling -->
@@ -22,7 +22,7 @@
     <!-- Konfigurasi Tailwind Warna Coklat Gold Pastel -->
     <script>
         window.tailwind = window.tailwind || {};
-        tailwind.config = {
+        window.tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
@@ -33,7 +33,7 @@
                         'c-gold-pastel': '#D4B872', /* Emas Pastel / Soft Gold */
                         'c-gold-light': '#F3E8D2',  /* Emas Sangat Terang / Champagne */
                         'c-brown-pastel': '#A68A64', /* Cokelat Susu / Mocha Lembut */
-                        'c-brown-dark': '#7A5C3D',  /* Cokelat Tua Hangat */
+                        'c-brown-dark': '#7A5C3D',  /* Cokelat Tua Hangat (untuk teks agar terbaca) */
                         'light-bg': '#FAF8F5'       /* Latar Belakang Putih Gading / Ivory */
                     }
                 }
@@ -42,18 +42,15 @@
     </script>
 
     <style>
-        /* Mengunci agar halaman tidak bisa digeser ke samping (Solusi huruf S kepotong) */
-        html, body {
-            overflow-x: hidden;
-            width: 100%;
-            position: relative;
-        }
-        
+        /* Animasi khusus untuk cover undangan */
         .slide-up {
             transform: translateY(-100%);
             transition: transform 1s ease-in-out;
         }
-        
+        body {
+            overflow-x: hidden;
+        }
+        /* Efek pulse untuk tombol dengan warna Soft Gold */
         .btn-pulse {
             animation: pulse 2s infinite;
         }
@@ -62,14 +59,24 @@
             70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(212, 184, 114, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 184, 114, 0); }
         }
-
-        /* Lightbox untuk Galeri */
+        
+        /* Lightbox Styles */
         #lightbox {
-            display: none;
             backdrop-filter: blur(5px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
         #lightbox.active {
-            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #lightbox img {
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        #lightbox.active img {
+            transform: scale(1);
         }
     </style>
 </head>
@@ -77,56 +84,64 @@
 
     <!-- AUDIO LATAR BELAKANG -->
     <audio id="bg-music" loop>
-        <source src="https://adjiaulia.github.io/Virgoun%20-%20Bukti%20%20(Official%20Lyric%20Visualizer).mp3" type="audio/mpeg">
+        <source src="bruno-mars-risk-it-all.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- HALAMAN COVER (SAMPUL DEPAN) -->
-    <!-- Flex justify-between memisahkan atas dan bawah, menyisakan tengah -->
-    <div id="cover-page" class="fixed inset-0 z-50 w-full w-[100vw] flex flex-col justify-between text-white bg-cover bg-center" style="background-image: url('https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.11%20(1).jpeg');">
+    <!-- TOMBOL KONTROL MUSIK -->
+    <button id="music-btn" onclick="toggleMusic()" class="fixed bottom-6 right-6 z-40 bg-c-gold-pastel text-white p-4 rounded-full shadow-lg hidden hover:bg-c-brown-dark transition">
+        <i class="fas fa-music" id="music-icon"></i>
+    </button>
+
+    <!-- Halaman Cover (Sampul Depan) -->
+    <div id="cover-page" class="fixed inset-0 z-50 flex flex-col text-white bg-cover bg-center" style="background-image: url('https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.11%20(1).jpeg');">
         <div class="absolute inset-0 bg-black/60"></div> 
         
-        <!-- Bagian Atas: Judul dan Kepada Yth -->
-        <div class="relative z-10 text-center px-4 pt-16 md:pt-24" data-aos="fade-down" data-aos-duration="1500">
-            <p class="text-lg md:text-xl mb-2 tracking-widest uppercase text-c-gold-light">The Wedding Of</p>
-            <h1 class="font-wedding text-6xl md:text-8xl text-c-gold-pastel mb-4 drop-shadow-md">Adji & Aulia</h1>
-            <p class="text-md md:text-lg italic text-gray-200 mt-6">Kepada Yth. Bapak/Ibu/Saudara/i</p>
-        </div>
-        
-        <!-- Bagian Bawah: Tombol Saja -->
-        <div class="relative z-10 text-center px-4 pb-16 md:pb-24" data-aos="fade-up" data-aos-duration="1500">
-            <button onclick="openInvitation()" class="btn-pulse bg-c-gold-pastel hover:bg-c-brown-pastel text-white font-semibold px-8 py-3 rounded-full text-lg transition duration-300">
-                <i class="fas fa-envelope-open mr-2"></i> Buka Undangan
-            </button>
+        <!-- Wrapper Flexbox untuk memisahkan atas dan bawah -->
+        <div class="relative z-10 flex flex-col justify-between items-center w-full h-full py-16 md:py-24 px-4" data-aos="zoom-in" data-aos-duration="1500">
+            
+            <!-- Teks Bagian Atas -->
+            <div class="text-center mt-4">
+                <p class="text-lg md:text-xl mb-2 tracking-widest uppercase text-c-gold-light">The Wedding Of</p>
+                <h1 class="font-wedding text-6xl md:text-8xl text-c-gold-pastel mt-2 drop-shadow-md">Adji & Aulia</h1>
+                <p class="text-md md:text-lg mt-6 italic text-gray-200">Kepada Yth. Bapak/Ibu/Saudara/i</p>
+            </div>
+            
+            <!-- Ruang Kosong di Tengah (Otomatis) agar foto orang terlihat -->
+            
+            <!-- Tombol Bagian Bawah -->
+            <div class="text-center mb-8">
+                <button onclick="openInvitation()" class="btn-pulse bg-c-gold-pastel hover:bg-c-brown-pastel text-white font-semibold px-8 py-3 rounded-full text-lg transition duration-300">
+                    <i class="fas fa-envelope-open mr-2"></i> Buka Undangan
+                </button>
+            </div>
+
         </div>
     </div>
 
-    <!-- HERO SECTION (SAVE THE DATE) -->
-    <!-- PERBAIKAN: md:bg-fixed membuat parallax hanya aktif di laptop, sementara di HP bg-cover biasa (solusi gambar nge-zoom) -->
-    <section class="min-h-screen relative flex items-center justify-center bg-cover bg-center md:bg-fixed w-full overflow-hidden" style="background-image: url('https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.13%20(1).jpeg');">
-        <div class="absolute inset-0 bg-black/50"></div>
-        <div class="relative z-10 text-center text-white px-4 w-full">
-            <!-- Tracking dikurangi di layar HP agar 'S' tidak meluber -->
-            <h2 class="text-xl md:text-3xl tracking-[0.2em] md:tracking-[0.3em] uppercase mb-4 text-c-gold-light" data-aos="fade-down" data-aos-duration="1000">Save The Date</h2>
+    <!-- Hero Section -->
+    <section class="min-h-screen relative flex items-center justify-center bg-cover bg-center bg-fixed" style="background-image: url('https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.13%20(1).jpeg');">
+        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="relative z-10 text-center text-white px-4">
+            <h2 class="text-2xl md:text-3xl tracking-[0.3em] uppercase mb-4 text-c-gold-light" data-aos="fade-down" data-aos-duration="1000">Save The Date</h2>
             <h1 class="font-wedding text-5xl md:text-7xl text-c-gold-pastel my-6 drop-shadow-md" data-aos="zoom-in" data-aos-delay="300" data-aos-duration="1000">Adji & Aulia</h1>
             <p class="text-xl md:text-2xl font-light tracking-widest mt-4 text-gray-200" data-aos="fade-up" data-aos-delay="600" data-aos-duration="1000">07 . 10 . 2026</p>
         </div>
     </section>
 
-    <!-- PROFIL MEMPELAI -->
-    <section class="py-20 px-4 md:px-10 max-w-6xl mx-auto text-center overflow-hidden">
+    <!-- Profil Mempelai -->
+    <section class="py-20 px-4 md:px-10 max-w-6xl mx-auto text-center">
         <div data-aos="fade-up" data-aos-duration="1000">
-            <img src="https://cdn-icons-png.flaticon.com/512/3382/3382025.png" alt="Bismillah" class="w-32 mx-auto mb-6 opacity-60" style="filter: sepia(1) hue-rotate(30deg) saturate(0.5);" onerror="this.style.display='none'">
             <p class="text-c-brown-dark italic mb-10 max-w-2xl mx-auto leading-relaxed">
-                "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenis kamu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan dijadikan-Nya diantaramu rasa kasih dan sayang."<br>
+                "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan dijadikan-Nya diantaramu rasa kasih dan sayang."<br>
                 <span class="font-bold">(QS. Ar-Rum: 21)</span>
             </p>
             <h2 class="text-3xl text-c-brown-dark font-bold mb-16 uppercase tracking-widest">Mempelai</h2>
         </div>
 
         <div class="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-20">
-            <div class="flex flex-col items-center text-center w-full md:w-1/2" data-aos="fade-right" data-aos-duration="1000">
+            <div class="flex flex-col items-center text-center" data-aos="fade-right" data-aos-duration="1000">
                 <div class="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-c-gold-pastel shadow-xl mb-6 p-1 bg-white">
-                    <img src="https://images.unsplash.com/photo-1550005809-91ad75b3178c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Groom" class="w-full h-full object-cover rounded-full">
+                    <img src="https://adjiaulia.github.io/profil%20adji.jpg" alt="Groom" class="w-full h-full object-cover rounded-full" onerror="this.src='https://images.unsplash.com/photo-1550005809-91ad75b3178c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'">
                 </div>
                 <h3 class="font-wedding text-4xl text-c-brown-dark font-bold mb-2">Adji Dwi Surono</h3>
                 <p class="text-c-brown-pastel font-semibold mb-1">Putra dari:</p>
@@ -135,9 +150,9 @@
 
             <h2 class="font-wedding text-5xl text-c-gold-pastel my-8 md:my-0" data-aos="zoom-in">&</h2>
 
-            <div class="flex flex-col items-center text-center w-full md:w-1/2" data-aos="fade-left" data-aos-duration="1000">
+            <div class="flex flex-col items-center text-center" data-aos="fade-left" data-aos-duration="1000">
                 <div class="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-c-gold-pastel shadow-xl mb-6 p-1 bg-white">
-                    <img src="https://images.unsplash.com/photo-1596450514735-111a2fe02935?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Bride" class="w-full h-full object-cover rounded-full">
+                    <img src="https://adjiaulia.github.io/profil%20aul.jpg" alt="Bride" class="w-full h-full object-cover rounded-full" onerror="this.src='https://images.unsplash.com/photo-1596450514735-111a2fe02935?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'">
                 </div>
                 <h3 class="font-wedding text-4xl text-c-brown-dark font-bold mb-2">Hulyatul Aulia Marshanda</h3>
                 <p class="text-c-brown-pastel font-semibold mb-1">Putri dari:</p>
@@ -146,166 +161,170 @@
         </div>
     </section>
 
-    <!-- DETAIL ACARA (Dengan Background Baru) -->
-    <!-- PERBAIKAN: Menghapus parallax di HP agar tidak nge-zoom/terpotong -->
-    <section class="py-20 px-4 relative text-center text-white bg-cover bg-center md:bg-fixed overflow-hidden" style="background-image: url('https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.14.jpeg'); border-top: 4px solid #F3E8D2; border-bottom: 4px solid #F3E8D2;">
-        <!-- Overlay gelap dinaikkan jadi 70% agar kontras dengan teks lebih bagus -->
-        <div class="absolute inset-0 bg-black/70"></div> 
-        
-        <div class="relative z-10 max-w-5xl mx-auto">
+    <!-- Detail Acara -->
+    <section class="py-20 px-4 relative flex items-center justify-center bg-cover bg-center bg-fixed text-white text-center border-y-4 border-c-gold-pastel" style="background-image: url('https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.14.jpeg');">
+        <!-- Overlay gelap untuk memastikan teks terbaca -->
+        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="max-w-5xl mx-auto relative z-10 w-full">
             <h2 class="text-3xl font-bold mb-4 uppercase tracking-widest text-c-gold-light" data-aos="fade-up">Detail Acara</h2>
             <p class="mb-12 italic text-c-gold-light/80" data-aos="fade-up" data-aos-delay="200">Dengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami.</p>
 
-            <div class="max-w-2xl mx-auto">
-                <!-- Kartu Gabungan Akad Nikah & Resepsi -->
-                <div class="bg-white/10 backdrop-blur-md p-8 md:p-12 rounded-2xl border border-c-gold-pastel/60 hover:border-c-gold-pastel transition duration-300 shadow-2xl" data-aos="zoom-in" data-aos-duration="1000">
-                    <i class="fas fa-rings-wedding text-5xl text-c-gold-pastel mb-6"></i>
-                    <h3 class="text-2xl md:text-3xl font-bold mb-2 uppercase text-white tracking-widest">Akad Nikah & Resepsi</h3>
-                    
-                    <div class="my-8 space-y-4 text-c-gold-light text-lg">
-                        <p class="flex items-center justify-center gap-3">
-                            <i class="far fa-calendar-alt text-c-gold-pastel text-2xl w-8"></i> 
-                            <span>Rabu, 07 Oktober 2026</span>
-                        </p>
-                        <p class="flex items-center justify-center gap-3">
-                            <i class="far fa-clock text-c-gold-pastel text-2xl w-8"></i> 
-                            <span>08:00 WIB - Selesai</span>
-                        </p>
-                        <p class="flex items-center justify-center gap-3 mt-6">
-                            <i class="fas fa-map-marker-alt text-c-gold-pastel text-2xl w-8"></i> 
-                            <span><strong>Rumah Mempelai Pria</strong><br>Dsn. Sukoharjo RT.003 RW.004, Toroh</span>
-                        </p>
-                    </div>
-
-                    <div class="mt-8">
-                        <a href="https://maps.app.goo.gl/QYQKwco4nQxrCRa77" target="_blank" class="inline-block bg-c-gold-pastel hover:bg-c-gold-light hover:text-c-brown-dark text-white font-bold py-3 px-8 rounded-full transition duration-300 shadow-lg w-full md:w-auto">
-                            <i class="fas fa-map-marked-alt mr-2"></i> Buka Google Maps
-                        </a>
+            <div class="grid grid-cols-1 gap-8 max-w-2xl mx-auto">
+                <!-- Kartu Akad Nikah & Resepsi Gabungan -->
+                <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-c-gold-pastel/40 hover:border-c-gold-pastel transition duration-300" data-aos="zoom-in" data-aos-duration="1000">
+                    <h3 class="text-2xl font-bold mb-2 uppercase text-white">Akad Nikah & Resepsi</h3>
+                    <div class="my-6 space-y-3 text-c-gold-light">
+                        <p><i class="far fa-calendar-alt text-c-gold-pastel w-6"></i> Rabu, 07 Oktober 2026</p>
+                        <p><i class="far fa-clock text-c-gold-pastel w-6"></i> 08:00 WIB - Selesai</p>
+                        <p><i class="fas fa-map-marker-alt text-c-gold-pastel w-6"></i> <strong>Rumah Mempelai Pria</strong><br>Dsn. Sukoharjo RT.003 RW.004, Toroh</p>
                     </div>
                 </div>
+            </div>
+
+            <div class="mt-12" data-aos="zoom-in" data-aos-offset="50">
+                <a href="https://maps.google.com" target="_blank" class="inline-block bg-c-gold-pastel hover:bg-c-gold-light hover:text-c-brown-dark text-white font-bold py-3 px-8 rounded-full transition duration-300 shadow-lg">
+                    <i class="fas fa-map-marked-alt mr-2"></i> Buka Google Maps
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- OUR STORY (Kisah Cinta Vertikal) -->
-    <section class="py-20 px-4 bg-light-bg overflow-hidden">
+    <!-- Kisah Kami (Our Story) -->
+    <section class="py-20 px-4 bg-light-bg border-b-2 border-c-gold-light overflow-hidden">
         <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="font-wedding text-5xl text-c-gold-pastel drop-shadow-sm mb-2" data-aos="fade-up">Our Story</h2>
-                <p class="text-c-brown-dark tracking-widest uppercase text-sm" data-aos="fade-up" data-aos-delay="100">Perjalanan Cinta Kami</p>
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl text-c-brown-dark font-bold mb-4 uppercase tracking-widest">Our Story</h2>
+                <p class="text-c-brown-pastel italic max-w-xl mx-auto">Perjalanan cerita kami hingga akhirnya memutuskan untuk bersama.</p>
             </div>
-
-            <div class="relative border-l-2 border-c-gold-pastel/50 pl-6 md:pl-0 md:border-l-0">
-                <!-- Garis Tengah (Hanya di layar besar) -->
-                <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-c-gold-pastel/50 transform -translate-x-1/2"></div>
-
-                <!-- Story 1 -->
-                <div class="mb-12 relative md:w-1/2 md:pr-12 md:ml-0" data-aos="fade-right">
-                    <div class="absolute -left-[33px] md:-right-[11px] md:left-auto top-1 w-5 h-5 bg-c-gold-light border-4 border-c-gold-pastel rounded-full z-10"></div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-c-gold-light hover:shadow-md transition">
-                        <h3 class="text-xl font-bold text-c-brown-dark mb-1">When we met</h3>
-                        <p class="text-c-gold-pastel font-semibold mb-3 text-sm">2014</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">Kami bertemu tidak melalui rencana yang besar, memasuki dunia sekolah menengah lalu dengan sipu kita berkenalan (formalitas). Ternyata diam-diam menaruh hati yang entah kapan bisa tersampaikan.</p>
+            
+            <div class="relative w-full mx-auto">
+                <!-- Garis Tengah -->
+                <div class="absolute left-6 md:left-1/2 h-full w-1 bg-c-gold-light transform -translate-x-1/2"></div>
+                
+                <!-- Story 1 (Kiri di PC, Kanan di HP) -->
+                <div class="relative flex flex-col md:flex-row items-center justify-between mb-12 w-full" data-aos="fade-up">
+                    <div class="w-full md:w-5/12 pl-16 md:pl-0 md:pr-10 text-left md:text-right">
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-c-gold-pastel/30 hover:border-c-gold-pastel transition duration-300 relative">
+                            <h4 class="font-wedding text-4xl text-c-gold-pastel mb-1">When we met</h4>
+                            <p class="text-sm font-bold text-c-brown-dark tracking-widest mb-3 uppercase">2014</p>
+                            <p class="text-sm text-gray-600 leading-relaxed">Kami bertemu tidak melalui rencana yang besar, memasuki dunia sekolah menengah lalu dengan sipu kita berkenalan (formalitas). Ternyata diam-diam menaruh hati yang entah kapan bisa tersampaikan.</p>
+                        </div>
+                    </div>
+                    <div class="absolute left-6 md:left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-c-brown-dark border-4 border-white z-10 shadow"></div>
+                    <div class="hidden md:block md:w-5/12"></div>
+                </div>
+                
+                <!-- Story 2 (Kanan di PC, Kanan di HP) -->
+                <div class="relative flex flex-col md:flex-row items-center justify-between mb-12 w-full" data-aos="fade-up" data-aos-delay="100">
+                    <div class="hidden md:block md:w-5/12"></div>
+                    <div class="absolute left-6 md:left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-c-gold-pastel border-4 border-white z-10 shadow"></div>
+                    <div class="w-full md:w-5/12 pl-16 md:pl-0 md:pl-10 text-left">
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-c-gold-pastel/30 hover:border-c-gold-pastel transition duration-300">
+                            <h4 class="font-wedding text-4xl text-c-gold-pastel mb-1">Becoming us</h4>
+                            <p class="text-sm font-bold text-c-brown-dark tracking-widest mb-3 uppercase">2023</p>
+                            <p class="text-sm text-gray-600 leading-relaxed">Hari demi hari waktu berlalu, sampai waktu itu sendiri yang mempertemukan kita. Perlahan kita mulai lebih mengenal satu sama lain, bukan hanya tentang bahagia, namun juga luka, perbedaan, dan doa. Karena cinta bukan hanya tentang kesempurnaan melainkan bagaimana saling bertahan.</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Story 2 -->
-                <div class="mb-12 relative md:w-1/2 md:pl-12 md:ml-auto" data-aos="fade-left">
-                    <div class="absolute -left-[33px] md:-left-[11px] top-1 w-5 h-5 bg-c-gold-light border-4 border-c-gold-pastel rounded-full z-10"></div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-c-gold-light hover:shadow-md transition">
-                        <h3 class="text-xl font-bold text-c-brown-dark mb-1">Becoming us</h3>
-                        <p class="text-c-gold-pastel font-semibold mb-3 text-sm">2023</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">Hari demi hari waktu berlalu, sampai waktu itu sendiri yang mempertemukan kita. Perlahan kita mulai lebih mengenal satu sama lain, bukan hanya tentang bahagia, namun juga luka, perbedaan, dan doa. Karena cinta bukan hanya tentang kesempurnaan melainkan bagaimana saling bertahan.</p>
+                <!-- Story 3 (Kiri di PC) -->
+                <div class="relative flex flex-col md:flex-row items-center justify-between mb-12 w-full" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-full md:w-5/12 pl-16 md:pl-0 md:pr-10 text-left md:text-right">
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-c-gold-pastel/30 hover:border-c-gold-pastel transition duration-300">
+                            <h4 class="font-wedding text-4xl text-c-gold-pastel mb-1">A sacred promise</h4>
+                            <p class="text-sm font-bold text-c-brown-dark tracking-widest mb-3 uppercase">April 2026</p>
+                            <p class="text-sm text-gray-600 leading-relaxed">3 tahun berlalu, akhirnya kami memutuskan untuk ke jenjang yang lebih serius, dimana kebanyakan orang bilang ini adalah ibadah paling panjang. InshaAllah dengan keyakinan dan restu keluarga, kami memilih berjalan beriringan & berdampingan bukan hanya sekedar di saat bahagia namun juga di saat terluka.</p>
+                        </div>
                     </div>
+                    <div class="absolute left-6 md:left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-c-brown-dark border-4 border-white z-10 shadow"></div>
+                    <div class="hidden md:block md:w-5/12"></div>
                 </div>
 
-                <!-- Story 3 -->
-                <div class="mb-12 relative md:w-1/2 md:pr-12 md:ml-0" data-aos="fade-right">
-                    <div class="absolute -left-[33px] md:-right-[11px] md:left-auto top-1 w-5 h-5 bg-c-gold-light border-4 border-c-gold-pastel rounded-full z-10"></div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-c-gold-light hover:shadow-md transition">
-                        <h3 class="text-xl font-bold text-c-brown-dark mb-1">A sacred promise</h3>
-                        <p class="text-c-gold-pastel font-semibold mb-3 text-sm">April 2026</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">3 tahun berlalu, akhirnya kami memutuskan untuk ke jenjang yang lebih serius, di mana kebanyakan orang bilang ini adalah ibadah paling panjang. InsyaAllah dengan keyakinan dan restu keluarga, kami memilih berjalan beriringan & berdampingan bukan hanya sekedar di saat bahagia namun juga di saat terluka.</p>
-                    </div>
-                </div>
-
-                <!-- Story 4 -->
-                <div class="relative md:w-1/2 md:pl-12 md:ml-auto" data-aos="fade-left">
-                    <div class="absolute -left-[33px] md:-left-[11px] top-1 w-5 h-5 bg-c-gold-light border-4 border-c-gold-pastel rounded-full z-10"></div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-c-gold-light hover:shadow-md transition">
-                        <h3 class="text-xl font-bold text-c-brown-dark mb-1">Forever from now</h3>
-                        <p class="text-c-gold-pastel font-semibold mb-3 text-sm">Oktober 2026</p>
-                        <p class="text-gray-600 text-sm leading-relaxed">Di hadapan-Nya, kami meresmikan ikatan suci ini menuju ke gerbang kehidupan yang baru. InsyaAllah pernikahan yang dibangun dengan cinta dan doa adalah sebuah awal perjalanan panjang yang takkan pernah berakhir.</p>
+                <!-- Story 4 (Kanan di PC) -->
+                <div class="relative flex flex-col md:flex-row items-center justify-between mb-12 w-full" data-aos="fade-up" data-aos-delay="300">
+                    <div class="hidden md:block md:w-5/12"></div>
+                    <div class="absolute left-6 md:left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-c-gold-pastel border-4 border-white z-10 shadow"></div>
+                    <div class="w-full md:w-5/12 pl-16 md:pl-0 md:pl-10 text-left">
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-c-gold-pastel/30 hover:border-c-gold-pastel transition duration-300">
+                            <h4 class="font-wedding text-4xl text-c-gold-pastel mb-1">Forever from now</h4>
+                            <p class="text-sm font-bold text-c-brown-dark tracking-widest mb-3 uppercase">Oktober 2026</p>
+                            <p class="text-sm text-gray-600 leading-relaxed">Di hadapan-Nya, kami meresmikan ikatan suci ini menuju ke gerbang kehidupan yang baru. InshaAllah pernikahan yang dibangun dengan cinta dan doa adalah sebuah awal perjalanan panjang yang takkan pernah berakhir.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- GALERI FOTO (Masonry Proporsional & Lightbox) -->
-    <section class="py-20 px-4 bg-c-gold-light/20 text-center overflow-hidden">
+    <!-- Galeri Foto -->
+    <section class="py-20 px-4 bg-light-bg text-center">
         <h2 class="text-3xl text-c-brown-dark font-bold mb-12 uppercase tracking-widest" data-aos="fade-up">Galeri Kami</h2>
         
-        <!-- Grid proporsional (Tanpa row-span yang membuat foto melar ke bawah) -->
-        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[150px] md:auto-rows-[200px]">
+        <!-- Grid Masonry dengan Tailwind. Menggunakan break-inside-avoid agar gambar tidak terpotong -->
+        <!-- Memanfaatkan class span untuk gambar landscape agar lebih lebar di PC/Tablet -->
+        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px] md:auto-rows-[250px]">
             
-            <div class="col-span-2 md:col-span-1 rounded-lg overflow-hidden shadow-md border-2 border-c-gold-light relative group cursor-pointer" data-aos="zoom-in" data-aos-delay="100" onclick="openLightbox('https://adjiaulia.github.io/galeri-1.jpg')">
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
-                    <i class="fas fa-search-plus text-white text-3xl"></i>
-                </div>
-                <img src="https://adjiaulia.github.io/galeri-1.jpg" alt="Gallery 1" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&h=600&q=80'">
+            <!-- Foto 1 (Kotak) -->
+            <div class="rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.13.jpeg" alt="Gallery 1" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&h=800&q=80'">
             </div>
             
-            <!-- Foto Horizontal (Landscape) - Melebar 2 Kolom -->
-            <div class="col-span-2 rounded-lg overflow-hidden shadow-md border-2 border-c-gold-light relative group cursor-pointer" data-aos="zoom-in" data-aos-delay="200" onclick="openLightbox('https://adjiaulia.github.io/galeri-2.jpg')">
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
-                    <i class="fas fa-search-plus text-white text-3xl"></i>
-                </div>
-                <img src="https://adjiaulia.github.io/galeri-2.jpg" alt="Gallery 2" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&h=400&q=80'">
+            <!-- Foto 2 (Kotak) -->
+            <div class="rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="100" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.09%20(1).jpeg" alt="Gallery 2" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&h=600&q=80'">
+            </div>
+            
+            <!-- Foto 3 (Landscape Lebar) -->
+            <div class="col-span-2 rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="200" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.07%20(2).jpeg" alt="Gallery 3" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=600&h=600&q=80'">
+            </div>
+            
+            <!-- Foto 4 (Landscape Lebar) -->
+            <div class="col-span-2 rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="300" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.14.jpeg" alt="Gallery 4" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&h=900&q=80'">
+            </div>
+            
+            <!-- Foto 5 (Kotak) -->
+            <div class="rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="150" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.15.jpeg" alt="Gallery 5" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&h=850&q=80'">
+            </div>
+            
+            <!-- Foto 6 (Kotak) -->
+            <div class="rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="250" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.10.jpeg" alt="Gallery 6" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1549416878-b9ca92e421fb?auto=format&fit=crop&w=1200&h=500&q=80'">
             </div>
 
-            <div class="col-span-1 rounded-lg overflow-hidden shadow-md border-2 border-c-gold-light relative group cursor-pointer" data-aos="zoom-in" data-aos-delay="300" onclick="openLightbox('https://adjiaulia.github.io/galeri-3.jpg')">
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
-                    <i class="fas fa-search-plus text-white text-3xl"></i>
-                </div>
-                <img src="https://adjiaulia.github.io/galeri-3.jpg" alt="Gallery 3" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=600&h=600&q=80'">
+            <!-- Foto 7 (Kotak) -->
+            <div class="rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="350" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.09.jpeg" alt="Gallery 7" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&h=600&q=80'">
             </div>
-
-            <div class="col-span-1 rounded-lg overflow-hidden shadow-md border-2 border-c-gold-light relative group cursor-pointer" data-aos="zoom-in" data-aos-delay="150" onclick="openLightbox('https://adjiaulia.github.io/galeri-4.jpg')">
-                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
-                    <i class="fas fa-search-plus text-white text-3xl"></i>
-                </div>
-                <img src="https://adjiaulia.github.io/galeri-4.jpg" alt="Gallery 4" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=600&h=600&q=80'">
-            </div>
-
-            <!-- Foto Horizontal Lainnya -->
-            <div class="col-span-2 rounded-lg overflow-hidden shadow-md border-2 border-c-gold-light relative group cursor-pointer" data-aos="zoom-in" data-aos-delay="250" onclick="openLightbox('https://adjiaulia.github.io/galeri-5.jpg')">
-                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
-                    <i class="fas fa-search-plus text-white text-3xl"></i>
-                </div>
-                <img src="https://adjiaulia.github.io/galeri-5.jpg" alt="Gallery 5" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&h=400&q=80'">
-            </div>
-
-            <div class="col-span-2 md:col-span-1 rounded-lg overflow-hidden shadow-md border-2 border-c-gold-light relative group cursor-pointer" data-aos="zoom-in" data-aos-delay="350" onclick="openLightbox('https://adjiaulia.github.io/galeri-6.jpg')">
-                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
-                    <i class="fas fa-search-plus text-white text-3xl"></i>
-                </div>
-                <img src="https://adjiaulia.github.io/galeri-6.jpg" alt="Gallery 6" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1549416878-b9ca92e421fb?auto=format&fit=crop&w=600&h=600&q=80'">
+            
+            <!-- Foto 8 (Kotak) -->
+            <div class="rounded-lg shadow-md border-2 border-c-gold-light overflow-hidden relative cursor-pointer group" data-aos="fade-up" data-aos-delay="400" onclick="openLightbox(this)">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10"><i class="fas fa-search-plus text-white text-3xl"></i></div>
+                <img src="https://adjiaulia.github.io/WhatsApp%20Image%202026-08-06%20at%2019.56.08.jpeg" alt="Gallery 8" class="w-full h-full object-cover hover:scale-110 transition duration-700" onerror="this.src='https://images.unsplash.com/photo-1532712938730-4e36c8d79346?auto=format&fit=crop&w=600&h=750&q=80'">
             </div>
         </div>
     </section>
 
-    <!-- RSVP & UCAPAN -->
-    <section class="py-20 px-4 bg-light-bg overflow-hidden">
+    <!-- RSVP & Ucapan -->
+    <section class="py-20 px-4 bg-c-gold-light/40">
         <!-- Wedding Gift / Amplop Digital -->
         <div class="max-w-3xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-xl mb-12 border border-c-gold-light" data-aos="zoom-in">
             <h2 class="text-3xl text-c-brown-dark font-bold mb-2 text-center uppercase tracking-widest">Wedding Gift</h2>
             <p class="text-center text-gray-500 mb-8">Bagi Bapak/Ibu/Saudara/i yang ingin memberikan tanda kasih untuk pengantin, dapat mengirimkan melalui:</p>
             
             <div class="flex flex-col md:flex-row justify-center items-center gap-8">
-                <!-- Rekening 1 -->
+                <!-- Bank Transfer Card 1 (Pengganti QRIS) -->
                 <div class="bg-light-bg p-6 rounded-xl border border-c-gold-pastel/40 text-center w-full md:w-1/2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/97/Logo_BRI.png" alt="BRI" class="h-10 mx-auto mb-4 object-contain">
+                    <i class="fas fa-university text-4xl text-c-gold-pastel mb-4"></i>
                     <h3 class="font-bold text-lg text-c-brown-dark mb-1">Bank BRI</h3>
                     <p class="text-xl tracking-widest text-c-brown-dark font-mono mb-2">601201042687532</p>
                     <p class="text-sm text-c-brown-pastel mb-4">a.n. Adji Dwi Surono</p>
@@ -314,9 +333,9 @@
                     </button>
                 </div>
 
-                <!-- Rekening 2 -->
+                <!-- Bank Transfer Card 2 (BCA) -->
                 <div class="bg-light-bg p-6 rounded-xl border border-c-gold-pastel/40 text-center w-full md:w-1/2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" alt="BCA" class="h-10 mx-auto mb-4 object-contain">
+                    <i class="fas fa-university text-4xl text-c-gold-pastel mb-4"></i>
                     <h3 class="font-bold text-lg text-c-brown-dark mb-1">Bank BCA</h3>
                     <p class="text-xl tracking-widest text-c-brown-dark font-mono mb-2">0811914931</p>
                     <p class="text-sm text-c-brown-pastel mb-4">a.n. Hulyatul Aulia M</p>
@@ -356,46 +375,53 @@
                 </div>
             </form>
 
-            <!-- Menampilkan Daftar Ucapan (Kosong Awal) -->
+            <!-- Menampilkan Daftar Ucapan -->
             <div class="mt-12 text-left">
                 <h3 class="text-xl text-c-brown-dark font-bold mb-4 border-b-2 border-c-gold-pastel pb-2">Daftar Ucapan & Doa</h3>
                 <div id="daftar-ucapan" class="space-y-4 max-h-64 overflow-y-auto pr-2">
-                    <!-- Ucapan akan ditambahkan di sini via JavaScript -->
+                    <!-- Ucapan akan muncul di sini -->
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FOOTER -->
+    <!-- Footer -->
     <footer class="bg-c-brown-dark text-center py-10 text-white">
         <h2 class="font-wedding text-4xl text-c-gold-pastel mb-4" data-aos="fade-up">Adji & Aulia</h2>
         <p class="text-c-gold-light text-sm" data-aos="fade-up" data-aos-delay="200">Merupakan suatu kehormatan dan kebahagiaan bagi kami<br>apabila Bapak/Ibu/Saudara/i berkenan hadir untuk memberikan doa restu.</p>
         <p class="mt-8 text-xs text-c-brown-pastel">Terima Kasih</p>
     </footer>
 
-    <!-- LIGHTBOX CONTAINER UNTUK ZOOM FOTO -->
-    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/90 items-center justify-center cursor-pointer" onclick="closeLightbox()">
-        <span class="absolute top-6 right-8 text-white text-4xl hover:text-c-gold-pastel">&times;</span>
-        <img id="lightbox-img" src="" alt="Full Screen" class="max-w-[95%] max-h-[95vh] rounded-lg shadow-2xl transition-transform duration-300 transform scale-95">
-    </div>
-
-    <!-- TOAST NOTIFICATION -->
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-c-brown-dark text-white px-6 py-3 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50">
         <i class="fas fa-check-circle mr-2 text-c-gold-pastel"></i> <span id="toast-msg">Tersalin!</span>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center hidden" onclick="closeLightbox(event)">
+        <!-- Tombol Close (Tutup) -->
+        <button class="absolute top-6 right-8 text-white hover:text-c-gold-pastel text-4xl transition duration-300 z-50" onclick="closeLightbox(event, true)">
+            <i class="fas fa-times"></i>
+        </button>
+        <!-- Kontainer Gambar -->
+        <div class="relative max-w-4xl max-h-[85vh] w-full p-4 flex justify-center">
+            <img id="lightbox-img" src="" alt="Zoomed Photo" class="max-w-full max-h-full object-contain shadow-2xl rounded">
+        </div>
+        <p class="text-white/60 mt-4 text-sm tracking-widest"><i class="fas fa-compress-arrows-alt mr-1"></i> Ketuk area luar untuk menutup</p>
     </div>
 
     <!-- AOS Script untuk Animasi -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Inisialisasi AOS
         AOS.init({ once: false, offset: 50 });
 
-        // Script Kontrol Audio
         const audio = document.getElementById("bg-music");
+        const musicIcon = document.getElementById("music-icon");
         let isMusicPlaying = false;
 
         function openInvitation() {
             document.getElementById("cover-page").classList.add("slide-up");
+            document.getElementById("music-btn").classList.remove("hidden");
             playAudio();
             setTimeout(() => { document.getElementById("cover-page").style.display = 'none'; }, 1000);
         }
@@ -403,12 +429,28 @@
         function playAudio() {
             audio.play().then(() => {
                 isMusicPlaying = true;
+                musicIcon.classList.remove("fa-play");
+                musicIcon.classList.add("fa-music", "fa-spin");
             }).catch(error => {
                 console.log("Autoplay dicegah oleh browser.");
+                musicIcon.classList.add("fa-play");
+                musicIcon.classList.remove("fa-music");
             });
         }
 
-        // Fitur Salin Rekening
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                audio.pause();
+                musicIcon.classList.remove("fa-spin", "fa-music");
+                musicIcon.classList.add("fa-play");
+            } else {
+                audio.play();
+                musicIcon.classList.add("fa-spin", "fa-music");
+                musicIcon.classList.remove("fa-play");
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
         function showToast(message) {
             const toast = document.getElementById("toast");
             document.getElementById("toast-msg").innerText = message;
@@ -426,7 +468,9 @@
             showToast("Nomor rekening berhasil disalin!");
         }
 
-        // Fitur Submit Ucapan Biasa
+        // --- FUNGSI KIRIM UCAPAN TERHUBUNG KE GOOGLE SPREADSHEET ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7dHuw9XQITSCJNJdisKRh3m9byvucLccnspKtt3QKy26J4nRFQ-epwbQ0BhAJ-bqVfw/exec"; // Ganti dengan URL /exec Anda
+
         function kirimUcapan(event) {
             event.preventDefault(); 
             
@@ -447,30 +491,65 @@
             `;
             
             document.getElementById('daftar-ucapan').insertAdjacentHTML('afterbegin', ucapanBaru);
+            
+            // Kirim data secara background ke Google Sheets
+            if (SCRIPT_URL !== "MASUKKAN_URL_WEB_APP_ANDA_DISINI") {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: nama, attendance: kehadiran, message: pesan })
+                }).then(() => {
+                    showToast("Ucapan & RSVP berhasil dikirim ke database!");
+                }).catch(err => {
+                    console.error("Gagal mengirim:", err);
+                });
+            } else {
+                showToast("Ucapan terkirim (Mode lokal)!");
+            }
+
             event.target.reset();
         }
 
-        // Fitur Lightbox Galeri
-        function openLightbox(imageSrc) {
-            const lightbox = document.getElementById('lightbox');
-            const lightboxImg = document.getElementById('lightbox-img');
-            lightboxImg.src = imageSrc;
-            lightbox.classList.add('active');
-            // Sedikit delay agar animasi scale bekerja
+        // --- FUNGSI LIGHTBOX (POP-UP GAMBAR) ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        // Buka Lightbox
+        function openLightbox(element) {
+            // Ambil elemen img di dalam div yang diklik
+            const imgElement = element.querySelector('img');
+            
+            // Set sumber gambar lightbox sama dengan gambar yang diklik
+            lightboxImg.src = imgElement.src;
+            
+            // Tampilkan lightbox
+            lightbox.classList.remove('hidden');
+            
+            // Sedikit delay agar animasi transisi CSS berfungsi (opacity dari 0 ke 1)
             setTimeout(() => {
-                lightboxImg.classList.remove('scale-95');
-                lightboxImg.classList.add('scale-100');
+                lightbox.classList.add('active');
             }, 10);
+            
+            // Mencegah scroll di background
+            document.body.style.overflow = 'hidden';
         }
 
-        function closeLightbox() {
-            const lightbox = document.getElementById('lightbox');
-            const lightboxImg = document.getElementById('lightbox-img');
-            lightboxImg.classList.remove('scale-100');
-            lightboxImg.classList.add('scale-95');
-            setTimeout(() => {
+        // Tutup Lightbox
+        function closeLightbox(event, isButton = false) {
+            // Hanya tutup jika yang diklik adalah background hitam (id='lightbox') ATAU tombol close
+            if (event.target.id === 'lightbox' || isButton) {
                 lightbox.classList.remove('active');
-            }, 300);
+                
+                // Tunggu animasi fade out selesai baru sembunyikan total
+                setTimeout(() => {
+                    lightbox.classList.add('hidden');
+                    lightboxImg.src = ''; // Kosongkan src
+                    
+                    // Kembalikan kemampuan scroll
+                    document.body.style.overflow = 'auto';
+                }, 300); // 300ms sesuai durasi transisi di CSS
+            }
         }
     </script>
 </body>
